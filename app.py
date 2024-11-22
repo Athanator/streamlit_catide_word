@@ -302,8 +302,63 @@ def main(template_file_path: str, annexes_file_path: str, equipment_file_path: s
     
     return output_docx_file_path, output_pdf_file_path
 
-if __name__ == '__main__':
-    start = time.time()
+# Define a dictionary of usernames and passwords
+USER_CREDENTIALS = {
+    "admin": "camo",
+    "user1": "Vu3l1ng2024!",
+    # Add more users as needed
+}
+
+# Login function
+def login():
+    """Display login form and check credentials."""
+    st.title("Login")
+    # Get username and password from the user
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    # Login button
+    if st.button("Login"):
+        if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
+            st.session_state.logged_in = True
+            st.session_state.username = username
+            st.experimental_rerun()  # Reload to access the main application
+        else:
+            st.error("Invalid username or password")
+
+
+
+# Define a dictionary of usernames and passwords
+USER_CREDENTIALS = {
+    "camo": {"username": "camo", "password": "Vu3l1ng2024!"}
+    # Add more users as needed
+}
+
+# Login function
+def login():
+    """Display login form and check credentials."""
+    st.title("Login")
+    # Get username and password from the user
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    # Login button
+    if st.button("Login"):
+        # Debugging: Print the input values to check if they are being entered correctly
+        print(f"Attempting login with username: {username}, password: {password}")
+
+        # Check if username and password match
+        if username in USER_CREDENTIALS and USER_CREDENTIALS[username]['password'] == password:
+            st.session_state.logged_in = True
+            st.session_state.username = username
+            st.success(f"Logged in as {username}")  # Confirmation message
+            st.rerun()  # Reload to access the main application
+        else:
+            st.error("Invalid username or password")
+
+
+def main_app():
+    """Main application logic."""
     # Static variables
     template_file = 'AC-ACAM-P01-F31.docx'
     abs_dir_path = os.getcwd()
@@ -384,5 +439,17 @@ if __name__ == '__main__':
             )
 
 
+# Entry point of the app
+if __name__ == '__main__':
+    start = time.time()
+    # Initialize session state if it's not already initialized
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    # After login check, automatically show the main app
+    if st.session_state.logged_in:
+        main_app()  # Call main app logic if logged in
+    else:
+        login()  # Show login form if not logged in
 
     print(f'Elapsed time: {time.time() - start} seconds')
