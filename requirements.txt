@@ -6,4 +6,4 @@ comtypes==1.4.8
 openpyxl==3.1.5
 streamlit==1.40.1
 pypandoc
-pandoc-2.4
+pandoc
