@@ -4,13 +4,9 @@ import os
 import re
 from datetime import datetime
 from docx import Document, shared
-#import comtypes.client
+import comtypes.client
 import time
 import warnings
-import streamlit as st
-import pypandoc
-#from io import BytesIO
-
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
 
@@ -42,10 +38,6 @@ def input_files_structure(df: pd.DataFrame, type: str) -> bool:
                                                'medio_de_cumplimiento', 'si', 'na', 'docx_table', 'docx_row','docx_cump_col', 'docx_si_col', 'docx_na_col'], 
                                      0: ['int64']*2 + ['object']*6 + ['float64']*5})
         if not df_structure.equals(df.dtypes.reset_index()):
-            st.error("The annexes file structure is not correct.")
-            return False
-        elif df['medio_de_cumplimiento'].str.contains('CHECK WITH SYSTEMS.CAMO').any():
-            st.error("The annexes file structure is not correct. CHECK WITH SYSTEMS.CAMO is not allowed.")
             return False
     elif type == 'equipment':
         df_structure = pd.DataFrame({'index': ['reg', 'ac_model', 'msn', 'mfg_date', 'equipment', 'manufacturer', 'partno', 'mel_item', 'serialno', 'fin',
@@ -267,25 +259,24 @@ def save_doc(document: Document, equipment_file_path: str, output_file_path: str
 
 def convert_doc_to_pdf(input_file_path: str, output_pdf_file_path: str) -> None:
     """
-    Converts a .docx file to .pdf using pypandoc and ignores the 'No pandoc was found' error.
+    Converts the word document to pdf.
     """
-    print("Converting .docx file to .pdf")
+    print('Converting .docx file to .pdf')
+    wdFormatPDF = 17
     try:
-        pypandoc.convert_file(input_file_path, 'pdf', outputfile=output_pdf_file_path)
-        print("Document converted successfully")
+        word = comtypes.client.CreateObject('Word.Application')
+        doc = word.Documents.Open(input_file_path)
+        doc.SaveAs(output_pdf_file_path, FileFormat=wdFormatPDF)
+        doc.Close()
+        word.Quit()
     except Exception as e:
-        # Check for the specific "No pandoc was found" error
-        if "No pandoc was found" in str(e):
-            print("Warning: Pandoc is not installed. Skipping PDF conversion.")
-        else:
-            # Re-raise other exceptions
-            raise Exception(f"Error converting the document. {e}")
+        raise Exception(f"Error converting the document. {e}")
 
     print("Document converted succesfully")
 
-def main(template_file_path: str, annexes_file_path: str, equipment_file_path: str, output_file_path: str) -> str:
+def main(template_file_path: str, annexes_file_path: str, equipment_file_path: str, output_file_path: str) -> None:
     """
-    Main function. Returns the resulting files path (.xlsx and .pdf)
+    Main function.
     """
     try:
         document = initialize_doc(template_file_path)
@@ -294,95 +285,25 @@ def main(template_file_path: str, annexes_file_path: str, equipment_file_path: s
         equipment_arrays = upload_equipment_dataframe_to_array(equipment_file_path)
         document = populate_equipment(document, equipment_arrays)
         document = populate_rest_of_data(document, equipment_file_path)
-        output_docx_file_path = save_doc(document, equipment_file_path, output_file_path)
-        output_pdf_file_path = output_docx_file_path.replace('.docx', '.pdf')
-        convert_doc_to_pdf(output_docx_file_path, output_pdf_file_path)
+        specific_path = save_doc(document, equipment_file_path, output_file_path)
+        output_pdf_file_path = specific_path.replace('.docx', '.pdf')
+        convert_doc_to_pdf(specific_path, output_pdf_file_path)
     except Exception as e:
-        st.error(f"Error in main function. {e}")
-    
-    return output_docx_file_path, output_pdf_file_path
+        print(f"Error in main function. {e}")
 
 if __name__ == '__main__':
     start = time.time()
-    # Static variables
+    # static variables
     template_file = 'AC-ACAM-P01-F31.docx'
+    annexes_file = 'EC-MAN_annexes.xlsx'
+    equipment_file = 'EC-MAN_equipment.xlsx'
+
+    # paths definition
     abs_dir_path = os.getcwd()
     template_file_path = os.path.join(abs_dir_path, 'config', template_file)
+    annexes_file_path = os.path.join(abs_dir_path, 'config', annexes_file)
+    equipment_file_path = os.path.join(abs_dir_path, 'config', equipment_file)
     output_file_path = os.path.join(abs_dir_path, 'AC-ACAM-P01-F31 Ed.02 Declaración equipamiento AOC Avión')
 
-    st.title("AC-ACAM-P01-F31 Generation (Single Aircraft)")
-
-    # Step 1: Upload the annexes file
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        file1 = st.file_uploader(
-            "Upload the Excel file with the AC-ACAM-P01-F31 annexes previously downloaded from AMOS (Filename not relevant)",
-            type="xlsx",
-            key="file1"
-        )
-    with col2:
-        st.image("file1_instructions.png", caption="How to get AC-ACAM-P01-F31 annexes file", use_container_width=True)
-
-    # Step 2: Upload the equipment file
-    col3, col4 = st.columns([2, 1])
-    with col3:
-        file2 = st.file_uploader(
-            "Upload the Excel file with the LVO/PBN/RVSM/CPDLC equipment previously downloaded from AMOS (Filename not relevant)",
-            type="xlsx",
-            key="file2"
-        )
-    with col4:
-        st.image("file2_instructions.png", caption="How to get AC-ACAM-P01-F31 equipment file", use_container_width=True)
-
-    # Use session state to persist uploaded files
-    if file1:
-        st.session_state["annexes_file"] = file1
-    if file2:
-        st.session_state["equipment_file"] = file2
-
-    # Only proceed if both files are uploaded
-    if "annexes_file" in st.session_state and "equipment_file" in st.session_state:
-        annexes_file_path = st.session_state["annexes_file"]
-        equipment_file_path = st.session_state["equipment_file"]
-
-        # Step 3: Execute main function
-        if st.button('Generate AC-ACAM-P01-F31'):
-            with st.spinner('Generating AC-ACAM-P01-F31...'):
-                output_docx_file_path, output_pdf_file_path = main(template_file_path, annexes_file_path, equipment_file_path, output_file_path)
-                st.session_state["output_docx"] = output_docx_file_path
-                st.session_state["output_pdf"] = output_pdf_file_path
-                st.success('AC-ACAM-P01-F31 generated successfully!')
-
-    # Step 4: Display download buttons and warnings if files are generated
-    if "output_docx" in st.session_state and "output_pdf" in st.session_state:
-        col5, col6 = st.columns(2)
-        with col5:
-            with open(st.session_state["output_docx"], 'rb') as f:
-                st.download_button(
-                    'Download AC-ACAM-P01-F31 in .xlsx format', 
-                    f, 
-                    file_name=st.session_state["output_docx"]
-                )
-
-        with col6:
-            with open(st.session_state["output_pdf"], 'rb') as f:
-                st.download_button(
-                    'Download AC-ACAM-P01-F31 in .pdf', 
-                    f, 
-                    file_name=st.session_state["output_pdf"]
-                )
-
-        # Step 7: Display Note/Warning with Image
-        st.write("Important Note!")
-        col7, col8 = st.columns([1, 2])
-        with col7:
-            st.image("final_note_efb_mel_mmel.png", caption="Important", use_container_width=True)
-        with col8:
-            st.warning(
-                """Please consider checking/updating the latest version of MEL and MMEL as well as fulfilling the table equipment for EFB. 
-                If you encounter issues, contact systems.camo@vueling.com."""
-            )
-
-
-
+    main(template_file_path, annexes_file_path, equipment_file_path, output_file_path)
     print(f'Elapsed time: {time.time() - start} seconds')
