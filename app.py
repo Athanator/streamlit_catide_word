@@ -411,6 +411,8 @@ def main_app():
     # Step 4: Display download buttons and warnings if files are generated
     if "output_docx" in st.session_state and "output_pdf" in st.session_state:
         col5, col6 = st.columns(2)
+        # debugging TODO borrar
+        st.write(f"{os.listdir()}")
         with col5:
             with open(st.session_state["output_docx"], 'rb') as f:
                 st.download_button(
