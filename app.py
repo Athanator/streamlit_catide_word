@@ -363,7 +363,7 @@ def main_app():
 
     #TODO
     try:
-        result = subprocess.run(['pdflatex', '--version'], capture_output=True, text=True, check=True)
+        result = subprocess.run(['texlive-full', '--version'], capture_output=True, text=True, check=True)
         st.write(result.stdout)
     except Exception as e:
         st.error(f"Error: {e}")
