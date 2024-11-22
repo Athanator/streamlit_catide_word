@@ -9,6 +9,7 @@ import time
 import warnings
 import streamlit as st
 import pypandoc
+import subprocess
 #from io import BytesIO
 
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
@@ -359,6 +360,13 @@ def login():
 
 def main_app():
     """Main application logic."""
+
+    #TODO
+    try:
+        result = subprocess.run(['pdflatex', '--version'], capture_output=True, text=True, check=True)
+        st.write(result.stdout)
+    except Exception as e:
+        st.error(f"Error: {e}")
     # Static variables
     template_file = 'AC-ACAM-P01-F31.docx'
     abs_dir_path = os.getcwd()
