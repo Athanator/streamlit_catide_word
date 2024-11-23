@@ -297,7 +297,8 @@ def main(template_file_path: str, annexes_file_path: str, equipment_file_path: s
         document = populate_rest_of_data(document, equipment_file_path)
         output_docx_file_path = save_doc(document, equipment_file_path, output_file_path)
         output_pdf_file_path = output_docx_file_path.replace('.docx', '.pdf')
-        convert_doc_to_pdf(output_docx_file_path, output_pdf_file_path)
+        #disable printing function
+        #convert_doc_to_pdf(output_docx_file_path, output_pdf_file_path)
     except Exception as e:
         st.error(f"Error in main function. {e}")
     
@@ -361,12 +362,6 @@ def login():
 def main_app():
     """Main application logic."""
 
-    #TODO
-    try:
-        result = subprocess.run(['texlive-full', '--version'], capture_output=True, text=True, check=True)
-        st.write(result.stdout)
-    except Exception as e:
-        st.error(f"Error: {e}")
     # Static variables
     template_file = 'AC-ACAM-P01-F31.docx'
     abs_dir_path = os.getcwd()
@@ -419,8 +414,6 @@ def main_app():
     # Step 4: Display download buttons and warnings if files are generated
     if "output_docx" in st.session_state and "output_pdf" in st.session_state:
         col5, col6 = st.columns(2)
-        # debugging TODO borrar
-        st.write(f"{os.listdir()}")
         with col5:
             with open(st.session_state["output_docx"], 'rb') as f:
                 st.download_button(
