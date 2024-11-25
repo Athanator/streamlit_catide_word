@@ -286,7 +286,7 @@ def convert_doc_to_pdf(input_file_path: str, output_pdf_file_path: str) -> None:
 
 def main(template_file_path: str, annexes_file_path: str, equipment_file_path: str, output_file_path: str) -> str:
     """
-    Main function. Returns the resulting files path (.xlsx and .pdf)
+    Main function. Returns the resulting files path (.docx and .pdf)
     """
     try:
         document = initialize_doc(template_file_path)
@@ -417,7 +417,7 @@ def main_app():
         with col5:
             with open(st.session_state["output_docx"], 'rb') as f:
                 st.download_button(
-                    'Download AC-ACAM-P01-F31 in .xlsx format', 
+                    'Download AC-ACAM-P01-F31 in .docx format', 
                     f, 
                     file_name=st.session_state["output_docx"]
                 )
