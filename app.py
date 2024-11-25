@@ -422,13 +422,13 @@ def main_app():
                     file_name=st.session_state["output_docx"]
                 )
 
-        with col6:
-            with open(st.session_state["output_pdf"], 'rb') as f:
-                st.download_button(
-                    'Download AC-ACAM-P01-F31 in .pdf', 
-                    f, 
-                    file_name=st.session_state["output_pdf"]
-                )
+        # with col6:
+        #     with open(st.session_state["output_pdf"], 'rb') as f:
+        #         st.download_button(
+        #             'Download AC-ACAM-P01-F31 in .pdf', 
+        #             f, 
+        #             file_name=st.session_state["output_pdf"]
+        #         )
 
         # Step 7: Display Note/Warning with Image
         st.write("Important Note!")
