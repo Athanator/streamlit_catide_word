@@ -302,7 +302,7 @@ def main(template_file_path: str, annexes_file_path: str, equipment_file_path: s
     except Exception as e:
         st.error(f"Error in main function. {e}")
     
-    return output_docx_file_path, output_pdf_file_path
+    return output_docx_file_path
 
 # Define a dictionary of usernames and passwords
 USER_CREDENTIALS = {
@@ -406,13 +406,13 @@ def main_app():
         # Step 3: Execute main function
         if st.button('Generate AC-ACAM-P01-F31'):
             with st.spinner('Generating AC-ACAM-P01-F31...'):
-                output_docx_file_path, output_pdf_file_path = main(template_file_path, annexes_file_path, equipment_file_path, output_file_path)
+                output_docx_file_path = main(template_file_path, annexes_file_path, equipment_file_path, output_file_path)
                 st.session_state["output_docx"] = output_docx_file_path
-                st.session_state["output_pdf"] = output_pdf_file_path
+                #st.session_state["output_pdf"] = output_pdf_file_path
                 st.success('AC-ACAM-P01-F31 generated successfully!')
 
     # Step 4: Display download buttons and warnings if files are generated
-    if "output_docx" in st.session_state and "output_pdf" in st.session_state:
+    if "output_docx" in st.session_state:
         col5, col6 = st.columns(2)
         with col5:
             with open(st.session_state["output_docx"], 'rb') as f:
